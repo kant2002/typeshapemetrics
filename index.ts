@@ -6,7 +6,8 @@ const statistics = {
     unionTypes: 0,
     intersectionTypes: 0,
     tupleTypes: 0,
-    singleTypes: 0
+    singleTypes: 0,
+    anyTypes: 0
 }
 
 function reportType(type: ts.TypeNode) {
@@ -16,6 +17,8 @@ function reportType(type: ts.TypeNode) {
         statistics.intersectionTypes++;
     } else if (ts.isTupleTypeNode(type)) {
         statistics.tupleTypes++;
+    } else if (type.getText() === 'any') {
+        statistics.anyTypes++;
     } else {
         statistics.singleTypes++;
     }
@@ -239,9 +242,10 @@ function recursiveReaddirSync(folder: PathLike) {
             if (fileName.endsWith('.d.ts')) {
                 return;
             }
-            if (!fileName.endsWith('.ts')) {
+            if (!fileName.endsWith('.ts') && !fileName.endsWith('.tsx')) {
                 return;
             }
+
             // Parse a file
             const sourceFile = ts.createSourceFile(
                 fileName,
