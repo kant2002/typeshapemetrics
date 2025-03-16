@@ -4,12 +4,18 @@ import * as ts from "typescript";
 
 const statistics = {
     unionTypes: 0,
+    intersectionTypes: 0,
+    tupleTypes: 0,
     singleTypes: 0
 }
 
 function reportType(type: ts.TypeNode) {
     if (ts.isUnionTypeNode(type)) {
         statistics.unionTypes++;
+    } else if (ts.isIntersectionTypeNode(type)) {
+        statistics.intersectionTypes++;
+    } else if (ts.isTupleTypeNode(type)) {
+        statistics.tupleTypes++;
     } else {
         statistics.singleTypes++;
     }
@@ -19,27 +25,117 @@ export function measureTypes(sourceFile: ts.SourceFile) {
     measureTypeNode(sourceFile);
 
     function measureTypeNode(node: ts.Node) {
+        if (ts.isToken(node)) {
+            return
+        }
+        
+        if (ts.isStatement(node)) {
+            ts.forEachChild(node, measureTypeNode);
+            return
+        }
+        
         switch (node.kind) {
-            case ts.SyntaxKind.SourceFile:
-            case ts.SyntaxKind.EndOfFileToken:
-            case ts.SyntaxKind.Identifier:
-            case ts.SyntaxKind.FirstLiteralToken:
-            case ts.SyntaxKind.FunctionDeclaration:
-            //case ts.SyntaxKind.MethodSignature:
-            case ts.SyntaxKind.VoidKeyword:
+            case ts.SyntaxKind.ArrowFunction:
+            case ts.SyntaxKind.AwaitExpression:
+            case ts.SyntaxKind.ArrayLiteralExpression:
+            case ts.SyntaxKind.ArrayBindingPattern:
             case ts.SyntaxKind.Block:
-            case ts.SyntaxKind.TypeLiteral:
+            case ts.SyntaxKind.BindingElement:
+            case ts.SyntaxKind.BinaryExpression:
+            case ts.SyntaxKind.CallExpression:
+            case ts.SyntaxKind.ConditionalType:
+            case ts.SyntaxKind.CaseClause:
+            case ts.SyntaxKind.CatchClause:
+            case ts.SyntaxKind.ComputedPropertyName:
+            case ts.SyntaxKind.CaseBlock:
+            case ts.SyntaxKind.ClassExpression:
+            case ts.SyntaxKind.ConditionalExpression:
+            case ts.SyntaxKind.Constructor:
+            case ts.SyntaxKind.DefaultClause:
+            case ts.SyntaxKind.DeleteExpression:
+            case ts.SyntaxKind.ExpressionStatement:
+            case ts.SyntaxKind.ExportSpecifier:
+            case ts.SyntaxKind.EnumMember:
+            case ts.SyntaxKind.ExternalModuleReference:
+            case ts.SyntaxKind.ElementAccessExpression:
+            case ts.SyntaxKind.ExpressionWithTypeArguments:
+            case ts.SyntaxKind.FirstNode:
+            case ts.SyntaxKind.FirstTypeNode:
+            case ts.SyntaxKind.FunctionDeclaration:
+            case ts.SyntaxKind.FunctionExpression:
+            case ts.SyntaxKind.Identifier:
+            case ts.SyntaxKind.IntersectionType:
+            case ts.SyntaxKind.IndexedAccessType:
+            case ts.SyntaxKind.ImportClause:
+            case ts.SyntaxKind.ImportSpecifier:
+            case ts.SyntaxKind.InferType:
+            case ts.SyntaxKind.HeritageClause:
+            case ts.SyntaxKind.GetAccessor:
+            //case ts.SyntaxKind.MethodSignature:
             case ts.SyntaxKind.LiteralType:
-            case ts.SyntaxKind.NullKeyword:
-            case ts.SyntaxKind.UndefinedKeyword:
-            case ts.SyntaxKind.NumberKeyword:
+            case ts.SyntaxKind.MappedType:
+            case ts.SyntaxKind.ModuleBlock:
+            case ts.SyntaxKind.NamedImports:
+            case ts.SyntaxKind.NamedExports:
+            case ts.SyntaxKind.NamespaceImport:
+            case ts.SyntaxKind.NamespaceExport:
+            case ts.SyntaxKind.NamedTupleMember:
+            case ts.SyntaxKind.NamespaceExportDeclaration:
+            case ts.SyntaxKind.NewExpression:
+            case ts.SyntaxKind.NonNullExpression:
             case ts.SyntaxKind.ObjectLiteralExpression:
-            case ts.SyntaxKind.ReturnKeyword:
+            case ts.SyntaxKind.ObjectBindingPattern:
+            case ts.SyntaxKind.OptionalType:
+            case ts.SyntaxKind.OmittedExpression:
+            case ts.SyntaxKind.ParenthesizedType:
+            case ts.SyntaxKind.PropertyAssignment:
+            case ts.SyntaxKind.PropertyAccessExpression:
+            case ts.SyntaxKind.PrefixUnaryExpression:
+            case ts.SyntaxKind.PostfixUnaryExpression:
+            case ts.SyntaxKind.ParenthesizedExpression:
+            case ts.SyntaxKind.ParenthesizedType:
             case ts.SyntaxKind.ReturnStatement:
-            case ts.SyntaxKind.StringKeyword:
+            case ts.SyntaxKind.SatisfiesExpression:
+            case ts.SyntaxKind.SetAccessor:
+            case ts.SyntaxKind.SourceFile:
+            case ts.SyntaxKind.ShorthandPropertyAssignment:
+            case ts.SyntaxKind.SpreadElement:
+            case ts.SyntaxKind.SpreadAssignment:
             case ts.SyntaxKind.StringLiteral:
+            case ts.SyntaxKind.TypeLiteral:
+            case ts.SyntaxKind.TypeOfExpression:
+            case ts.SyntaxKind.TypeQuery:
+            case ts.SyntaxKind.TupleType:
+            case ts.SyntaxKind.TypeParameter:
+            case ts.SyntaxKind.TypeAssertionExpression:
+            case ts.SyntaxKind.TypeOperator:
+            case ts.SyntaxKind.TemplateSpan:
+            case ts.SyntaxKind.TemplateExpression:
+            case ts.SyntaxKind.TemplateLiteralType:
+            case ts.SyntaxKind.TemplateLiteralTypeSpan:
+            case ts.SyntaxKind.TaggedTemplateExpression:
             case ts.SyntaxKind.TypeReference:
             case ts.SyntaxKind.UnionType:
+            case ts.SyntaxKind.VariableDeclarationList:
+            // Tokens
+            // Keywords
+            case ts.SyntaxKind.AsyncKeyword:
+            case ts.SyntaxKind.AssertKeyword:
+            case ts.SyntaxKind.AssertsKeyword:
+            case ts.SyntaxKind.FalseKeyword:
+            case ts.SyntaxKind.NullKeyword:
+            case ts.SyntaxKind.NumberKeyword:
+            case ts.SyntaxKind.StringKeyword:
+            case ts.SyntaxKind.ReturnKeyword:
+            case ts.SyntaxKind.TrueKeyword:
+            case ts.SyntaxKind.UndefinedKeyword:
+            case ts.SyntaxKind.VoidKeyword:
+                break;
+            case ts.SyntaxKind.AsExpression:
+                const asExpression = node as ts.AsExpression;
+                if (asExpression.type) {
+                    reportType(asExpression.type)
+                }
                 break;
             case ts.SyntaxKind.Parameter:
                 const parameter = node as ts.ParameterDeclaration;
@@ -63,11 +159,53 @@ export function measureTypes(sourceFile: ts.SourceFile) {
                     reportType(methodDeclaration.type)
                 }
                 break;
+            case ts.SyntaxKind.PropertyDeclaration:
+                const propertyDeclaration = node as ts.PropertyDeclaration;
+                if (propertyDeclaration.type) {
+                    reportType(propertyDeclaration.type)
+                }
+                break;
+            case ts.SyntaxKind.PropertySignature:
+                const propertySignature = node as ts.PropertySignature;
+                if (propertySignature.type) {
+                    reportType(propertySignature.type)
+                }
+                break;
+            case ts.SyntaxKind.VariableDeclaration:
+                const variableDeclaration = node as ts.VariableDeclaration;
+                if (variableDeclaration.type) {
+                    reportType(variableDeclaration.type)
+                }
+                break;
+            case ts.SyntaxKind.FunctionType:
+                const functionType = node as ts.FunctionTypeNode;
+                if (functionType.type) {
+                    reportType(functionType.type)
+                }
+                break;
+            case ts.SyntaxKind.ArrayType:
+                const arrayType = node as ts.ArrayTypeNode;
+                if (arrayType.elementType) {
+                    reportType(arrayType.elementType)
+                }
+                break;
+            case ts.SyntaxKind.CallSignature:
+                const callSignature = node as ts.CallSignatureDeclaration;
+                if (callSignature.type) {
+                    reportType(callSignature.type)
+                }
+                break;
+            case ts.SyntaxKind.IndexSignature:
+                const indexSignature = node as ts.IndexSignatureDeclaration;
+                if (indexSignature.type) {
+                    reportType(indexSignature.type)
+                }
+                break;
 
             default:
               report(
                 node,
-                `${ts.SyntaxKind[node.kind]} is not handled in the measureTypes. Please update the code to handle it.`
+                `${ts.SyntaxKind[node.kind]} ${node.getText()} is not handled in the measureTypes. Please update the code to handle it.`
               );
         }
 
@@ -87,9 +225,13 @@ if (process.argv.length < 3) {
 
 function recursiveReaddirSync(folder: PathLike) {
     readdirSync(folder).forEach(fileName => {
+        const originalFileName = fileName;
         fileName = path.join(folder.toString(), fileName);
         if (statSync(fileName).isDirectory()) {
             if (fileName.endsWith('node_modules')) {
+                return;
+            }
+            if (originalFileName === '.git') {
                 return;
             }
             recursiveReaddirSync(fileName);
