@@ -7,16 +7,28 @@ const statistics = {
     intersectionTypes: 0,
     tupleTypes: 0,
     singleTypes: 0,
-    anyTypes: 0
+    anyTypes: 0,
+    thisType: 0,
+    restType: 0,
+    inferredType: 0
 }
 
-function reportType(type: ts.TypeNode) {
+function reportType(type?: ts.TypeNode) {
+    if (!type) {
+        statistics.inferredType++;
+        return;
+    }
+
     if (ts.isUnionTypeNode(type)) {
         statistics.unionTypes++;
     } else if (ts.isIntersectionTypeNode(type)) {
         statistics.intersectionTypes++;
     } else if (ts.isTupleTypeNode(type)) {
         statistics.tupleTypes++;
+    } else if (ts.isThisTypeNode(type)) {
+        statistics.thisType++;
+    } else if (ts.isRestTypeNode(type)) {
+        statistics.restType++;
     } else if (type.getText() === 'any') {
         statistics.anyTypes++;
     } else {
@@ -38,6 +50,8 @@ export function measureTypes(sourceFile: ts.SourceFile) {
         }
         
         switch (node.kind) {
+            case ts.SyntaxKind.AssertClause:
+            case ts.SyntaxKind.AssertEntry:
             case ts.SyntaxKind.ArrowFunction:
             case ts.SyntaxKind.AwaitExpression:
             case ts.SyntaxKind.ArrayLiteralExpression:
@@ -54,6 +68,7 @@ export function measureTypes(sourceFile: ts.SourceFile) {
             case ts.SyntaxKind.ClassExpression:
             case ts.SyntaxKind.ConditionalExpression:
             case ts.SyntaxKind.Constructor:
+            case ts.SyntaxKind.Decorator:
             case ts.SyntaxKind.DefaultClause:
             case ts.SyntaxKind.DeleteExpression:
             case ts.SyntaxKind.ExpressionStatement:
@@ -77,6 +92,7 @@ export function measureTypes(sourceFile: ts.SourceFile) {
             //case ts.SyntaxKind.MethodSignature:
             case ts.SyntaxKind.LiteralType:
             case ts.SyntaxKind.MappedType:
+            case ts.SyntaxKind.MetaProperty:
             case ts.SyntaxKind.ModuleBlock:
             case ts.SyntaxKind.NamedImports:
             case ts.SyntaxKind.NamedExports:
@@ -98,6 +114,7 @@ export function measureTypes(sourceFile: ts.SourceFile) {
             case ts.SyntaxKind.ParenthesizedExpression:
             case ts.SyntaxKind.ParenthesizedType:
             case ts.SyntaxKind.ReturnStatement:
+            case ts.SyntaxKind.RestType:
             case ts.SyntaxKind.SatisfiesExpression:
             case ts.SyntaxKind.SetAccessor:
             case ts.SyntaxKind.SourceFile:
@@ -109,6 +126,7 @@ export function measureTypes(sourceFile: ts.SourceFile) {
             case ts.SyntaxKind.TypeOfExpression:
             case ts.SyntaxKind.TypeQuery:
             case ts.SyntaxKind.TupleType:
+            case ts.SyntaxKind.ThisType:
             case ts.SyntaxKind.TypeParameter:
             case ts.SyntaxKind.TypeAssertionExpression:
             case ts.SyntaxKind.TypeOperator:
@@ -119,7 +137,9 @@ export function measureTypes(sourceFile: ts.SourceFile) {
             case ts.SyntaxKind.TaggedTemplateExpression:
             case ts.SyntaxKind.TypeReference:
             case ts.SyntaxKind.UnionType:
+            case ts.SyntaxKind.VoidExpression:
             case ts.SyntaxKind.VariableDeclarationList:
+            case ts.SyntaxKind.YieldExpression:
             // Tokens
             // Keywords
             case ts.SyntaxKind.AsyncKeyword:
@@ -142,9 +162,7 @@ export function measureTypes(sourceFile: ts.SourceFile) {
                 break;
             case ts.SyntaxKind.Parameter:
                 const parameter = node as ts.ParameterDeclaration;
-                if (parameter.type) {
-                    reportType(parameter.type)
-                }
+                reportType(parameter.type)
                 break;
             case ts.SyntaxKind.TypeAliasDeclaration:
                 const typeAlias = node as ts.TypeAliasDeclaration;
@@ -152,57 +170,47 @@ export function measureTypes(sourceFile: ts.SourceFile) {
                 break;
             case ts.SyntaxKind.MethodSignature:
                 const methodSignature = node as ts.MethodSignature;
-                if (methodSignature.type) {
-                    reportType(methodSignature.type)
-                }
+                reportType(methodSignature.type)
                 break;
             case ts.SyntaxKind.MethodDeclaration:
                 const methodDeclaration = node as ts.MethodDeclaration;
-                if (methodDeclaration.type) {
-                    reportType(methodDeclaration.type)
-                }
+                reportType(methodDeclaration.type)
                 break;
             case ts.SyntaxKind.PropertyDeclaration:
-                const propertyDeclaration = node as ts.PropertyDeclaration;
-                if (propertyDeclaration.type) {
-                    reportType(propertyDeclaration.type)
-                }
+                const propertyDeclaration = node as ts.PropertyDeclaration;                
+                reportType(propertyDeclaration.type)
                 break;
             case ts.SyntaxKind.PropertySignature:
                 const propertySignature = node as ts.PropertySignature;
-                if (propertySignature.type) {
-                    reportType(propertySignature.type)
-                }
+                reportType(propertySignature.type)
                 break;
             case ts.SyntaxKind.VariableDeclaration:
                 const variableDeclaration = node as ts.VariableDeclaration;
-                if (variableDeclaration.type) {
-                    reportType(variableDeclaration.type)
-                }
+                reportType(variableDeclaration.type)
                 break;
             case ts.SyntaxKind.FunctionType:
                 const functionType = node as ts.FunctionTypeNode;
-                if (functionType.type) {
-                    reportType(functionType.type)
-                }
+                reportType(functionType.type)
+                break;
+            case ts.SyntaxKind.ConstructorType:
+                const constructorType = node as ts.ConstructorTypeNode;
+                reportType(constructorType.type)
+                break;
+            case ts.SyntaxKind.ConstructSignature:
+                const constructSignature = node as ts.ConstructSignatureDeclaration;
+                reportType(constructSignature.type)
                 break;
             case ts.SyntaxKind.ArrayType:
                 const arrayType = node as ts.ArrayTypeNode;
-                if (arrayType.elementType) {
-                    reportType(arrayType.elementType)
-                }
+                reportType(arrayType.elementType)
                 break;
             case ts.SyntaxKind.CallSignature:
                 const callSignature = node as ts.CallSignatureDeclaration;
-                if (callSignature.type) {
-                    reportType(callSignature.type)
-                }
+                reportType(callSignature.type)
                 break;
             case ts.SyntaxKind.IndexSignature:
                 const indexSignature = node as ts.IndexSignatureDeclaration;
-                if (indexSignature.type) {
-                    reportType(indexSignature.type)
-                }
+                reportType(indexSignature.type)
                 break;
 
             default:
