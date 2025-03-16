@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "licenses": [{
+    "type": "MIT"
+  }],
   "dependencies": {
     "typescript": "^5.8.2"
   },
